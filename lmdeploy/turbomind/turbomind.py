@@ -210,8 +210,7 @@ class TurboMind:
 
         def _get_params(device_id, que):
             rank = self.node_id * self.gpu_count + device_id
-            out = model_comm.get.params(device_id, rank)
-            time.sleep(0.001)
+            out = model_comm.get_params(device_id, rank)
             que.put(out)
 
         que = Queue()
