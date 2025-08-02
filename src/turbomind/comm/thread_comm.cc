@@ -8,7 +8,6 @@
 #include <mutex>
 #include <new>
 #include <numeric>
-#include &lt;thread&gt;
 
 #include "src/turbomind/comm/host_comm.h"
 #include "src/turbomind/core/check.h"
@@ -106,13 +105,8 @@ struct ThreadCommImpl: public HostCommImpl {
             if (r != rank_) {
                 auto& c = channel(rank_, r);
                 void* expected{};
-                int retry = 0;
                 while (!c.compare_exchange_weak(expected, (void*)1, std::memory_order_release)) {
                     expected = {};
-                    if (++retry > 100) {
-                        std::this_thread::yield();
-                        retry = 0;
-                    }
                 }
             }
         }
@@ -120,13 +114,8 @@ struct ThreadCommImpl: public HostCommImpl {
             if (r != rank_) {
                 auto& c        = channel(r, rank_);
                 void* expected = (void*)1;
-                int retry = 0;
                 while (!c.compare_exchange_weak(expected, nullptr, std::memory_order_acquire)) {
                     expected = (void*)1;
-                    if (++retry > 100) {
-                        std::this_thread::yield();
-                        retry = 0;
-                    }
                 }
             }
         }
@@ -145,39 +134,22 @@ struct ThreadCommImpl: public HostCommImpl {
                 if (r != rank_) {
                     auto& c = channel(rank_, r);
                     void* expected{};
-                    int retry = 0;
                     while (!c.compare_exchange_weak(expected, data, std::memory_order_release)) {
                         expected = {};
-                        if (++retry > 100) {
-                            std::this_thread::yield();
-                            retry = 0;
-                        }
                     }
                 }
             }
             for (const auto& r : l2g_) {
                 if (r != rank_) {
                     auto& c = channel(rank_, r);
-                    int retry = 0;
-                    while (c.load(std::memory_order_relaxed)) {
-                        if (++retry > 100) {
-                            std::this_thread::yield();
-                            retry = 0;
-                        }
-                    }
+                    while (c.load(std::memory_order_relaxed)) {}
                 }
             }
         }
         else {
             auto& c = channel(root, rank_);
             void* incoming{};
-            int retry = 0;
-            while (!(incoming = c.load(std::memory_order_acquire))) {
-                if (++retry > 100) {
-                    std::this_thread::yield();
-                    retry = 0;
-                }
-            }
+            while (!(incoming = c.load(std::memory_order_acquire))) {}
             copy(incoming, count, data, 0);
             c.store(nullptr, std::memory_order_relaxed);
         }
@@ -193,13 +165,8 @@ struct ThreadCommImpl: public HostCommImpl {
             if (r != rank_) {
                 auto& c = channel(rank_, r);
                 void* expected{};
-                int retry = 0;
                 while (!c.compare_exchange_weak(expected, data, std::memory_order_release)) {
                     expected = {};
-                    if (++retry > 100) {
-                        std::this_thread::yield();
-                        retry = 0;
-                    }
                 }
             }
         }
@@ -207,13 +174,7 @@ struct ThreadCommImpl: public HostCommImpl {
             if (r != rank_) {
                 auto& c = channel(r, rank_);
                 void* incoming{};
-                int retry = 0;
-                while (!(incoming = c.load(std::memory_order_acquire))) {
-                    if (++retry > 100) {
-                        std::this_thread::yield();
-                        retry = 0;
-                    }
-                }
+                while (!(incoming = c.load(std::memory_order_acquire))) {}
                 copy(incoming, count, data, g2l_[r] * count);
                 c.store(nullptr, std::memory_order_relaxed);
             }
@@ -221,13 +182,7 @@ struct ThreadCommImpl: public HostCommImpl {
         for (const auto& r : l2g_) {
             if (r != rank_) {
                 auto& c = channel(rank_, r);
-                int retry = 0;
-                while (c.load(std::memory_order_relaxed)) {
-                    if (++retry > 100) {
-                        std::this_thread::yield();
-                        retry = 0;
-                    }
-                }
+                while (c.load(std::memory_order_relaxed)) {}
             }
         }
     }
@@ -304,13 +259,8 @@ struct ThreadCommImpl: public HostCommImpl {
             if (r != rank_) {
                 auto& c = channel(rank_, r);
                 void* expected{};
-                int retry = 0;
                 while (!c.compare_exchange_weak(expected, (void*)tmp.get(), std::memory_order_release)) {
                     expected = {};
-                    if (++retry > 100) {
-                        std::this_thread::yield();
-                        retry = 0;
-                    }
                 }
             }
         }
@@ -318,13 +268,7 @@ struct ThreadCommImpl: public HostCommImpl {
             if (r != rank_) {
                 auto& c = channel(r, rank_);
                 void* incoming{};
-                int retry = 0;
-                while (!(incoming = c.load(std::memory_order_acquire))) {
-                    if (++retry > 100) {
-                        std::this_thread::yield();
-                        retry = 0;
-                    }
-                }
+                while (!(incoming = c.load(std::memory_order_acquire))) {}
                 reduce(incoming, count, data, 0);
                 c.store(nullptr, std::memory_order_relaxed);
             }
@@ -332,13 +276,7 @@ struct ThreadCommImpl: public HostCommImpl {
         for (const auto& r : l2g_) {
             if (r != rank_) {
                 auto& c = channel(rank_, r);
-                int retry = 0;
-                while (c.load(std::memory_order_relaxed)) {
-                    if (++retry > 100) {
-                        std::this_thread::yield();
-                        retry = 0;
-                    }
-                }
+                while (c.load(std::memory_order_relaxed)) {}
             }
         }
     }
