@@ -8,7 +8,7 @@
 #include <mutex>
 #include <new>
 #include <numeric>
-#include <thread>
+#include &lt;thread&gt;
 
 #include "src/turbomind/comm/host_comm.h"
 #include "src/turbomind/core/check.h"
@@ -298,7 +298,7 @@ struct ThreadCommImpl: public HostCommImpl {
         if (n_ranks() == 1) {
             return;
         }
-        std::unique_ptr<char[]> tmp((char*)::operator new[](elem_size * count));
+        std::unique_ptr<char[]> tmp((char*)::operator new[](elem_size* count));
         std::copy_n((char*)data, elem_size * count, tmp.get());
         for (const auto& r : l2g_) {
             if (r != rank_) {
