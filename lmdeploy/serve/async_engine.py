@@ -411,6 +411,24 @@ class AsyncEngine(LogitsMixin):
         finally:
             self._get_free_insts().put_nowait(inst)
 
+    def sleep(self, level: int = 1):
+        """Sleep the model.
+
+        Args:
+            level (int): The sleep level. Level 1 sleep will offload the model
+                weights and discard the kv cache. Level 2 sleep will
+                discard both the model weights and the kv cache.
+        """
+        self.engine.sleep(level)
+
+    def wakeup(self, tags: Optional[List[str]] = None):
+        """Wake up the model.
+
+        Args:
+            tags (List[str]): The tags to wake up. Values must be in `("weights", "kv_cache")`
+        """
+        self.engine.wakeup(tags)
+
     def _get_limiter(self):
         if not self.limiter:
             self.limiter = asyncio.Semaphore(self.instance_num)
@@ -826,7 +844,7 @@ class AsyncEngine(LogitsMixin):
                 else:
                     logger.error(f'session {session_id} finished, '
                                  'reason "error"')
-                    yield GenOut(response='internal error happened',
+                    yield GenOut(response=f'internal error happened, status code {outputs.status}',
                                  history_token_len=self.id2step[session_id],
                                  input_token_len=len(input_ids),
                                  generate_token_len=0,
