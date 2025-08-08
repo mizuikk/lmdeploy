@@ -56,7 +56,10 @@ RUN --mount=type=cache,target=/root/.cache/pip cd /opt/lmdeploy &&\
 # use locally built nccl for cuda11.8
 RUN if [ "$CUDA_VERSION_SHORT" = "cu118" ]; then python3 -m pip uninstall -y nvidia-nccl-cu11 ; fi
 # torch 2.7 brings in nvidia-nccl-cu12 2.26.x. Somehow, it causes performance degradation of pytorch engine
-RUN if [ "$CUDA_VERSION_SHORT" = "cu121" ]; then python3 -m pip install nvidia-nccl-cu12==2.25.1; fi
+RUN if [ "$CUDA_VERSION_SHORT" = "cu121" ]; then python3 -m pip install nvidia-nccl-cu12==2.25.1 --index-url https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple; fi
+
+# upgrade triton
+RUN python3 -m pip install -U triton>=3.4.0 --index-url https://mirrors.tuna.tsinghua.edu.cn/pypi/web/simple
 
 ENV LD_LIBRARY_PATH=/opt/lmdeploy/install/lib:$LD_LIBRARY_PATH
 ENV PATH=/opt/lmdeploy/install/bin:$PATH
