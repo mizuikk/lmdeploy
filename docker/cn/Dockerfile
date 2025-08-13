@@ -73,6 +73,11 @@ RUN --mount=type=cache,target=/root/.cache \
     --mount=type=cache,target=/wheels,from=builder,source=/wheels \
     /tmp/install.sh
 
+# upgrade triton
+RUN --mount=type=cache,target=/root/.cache \
+    --mount=type=cache,target=/wheels,from=builder,source=/wheels \
+    pip install --upgrade triton -i https://pypi.tuna.tsinghua.edu.cn/simple
+
 # explicitly set ptxas path for triton
 ENV PATH=/opt/py3/bin:$PATH
 ENV TRITON_PTXAS_PATH=/usr/local/cuda/bin/ptxas
