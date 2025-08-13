@@ -14,6 +14,8 @@ ENV CUDA_VERSION_SHORT=cu118
 
 # Builder image
 FROM ${CUDA_VERSION} AS dev
+# 重新声明 ARG 变量以确保在当前构建阶段可用
+ARG CACHE_DIR
 ARG PYTHON_VERSION=3.10
 
 ENV PATH=/opt/py3/bin:/root/.local/bin:${PATH}
@@ -46,6 +48,8 @@ WORKDIR /opt/lmdeploy
 COPY docker/cn/build.sh /opt/lmdeploy/docker/build.sh
 RUN chmod +x /opt/lmdeploy/docker/build.sh
 
+# 重新声明 ARG 变量以确保在当前构建阶段可用
+ARG CACHE_DIR
 RUN --mount=type=cache,target=${CACHE_DIR} \
     docker/build.sh && \
     docker/prepare_wheel.sh
@@ -61,6 +65,8 @@ FROM nvidia/cuda:11.8.0-base-ubuntu22.04 AS cu11-base
 ENV CUDA_VERSION_SHORT=cu118
 
 FROM ${CUDA_VERSION}-base AS final
+# 重新声明 ARG 变量以确保在当前构建阶段可用
+ARG CACHE_DIR
 ARG PYTHON_VERSION=3.10
 
 # 使用清华源替换默认源
