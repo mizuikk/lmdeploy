@@ -1,6 +1,7 @@
 # Base images
 ARG IMAGE_TYPE=final
 ARG CUDA_VERSION=cu12
+ARG CACHE_DIR=/root/.cache
 
 FROM nvidia/cuda:12.8.1-devel-ubuntu22.04 AS cu12.8
 ENV CUDA_VERSION_SHORT=cu128
@@ -23,7 +24,7 @@ ENV TZ=Etc/UTC
 RUN sed -i 's/archive.ubuntu.com/mirrors.tuna.tsinghua.edu.cn/g' /etc/apt/sources.list && \
     sed -i 's/security.ubuntu.com/mirrors.tuna.tsinghua.edu.cn/g' /etc/apt/sources.list
 
-RUN --mount=type=cache,target=/root/.cache \
+RUN --mount=type=cache,target=${CACHE_DIR} \
     apt-get update -y && \
     apt-get install -y --no-install-recommends \
         tzdata wget curl openssh-server ssh sudo git-core \
@@ -45,7 +46,7 @@ WORKDIR /opt/lmdeploy
 COPY docker/cn/build.sh /opt/lmdeploy/docker/build.sh
 RUN chmod +x /opt/lmdeploy/docker/build.sh
 
-RUN --mount=type=cache,target=/root/.cache \
+RUN --mount=type=cache,target=${CACHE_DIR} \
     docker/build.sh && \
     docker/prepare_wheel.sh
 
@@ -69,12 +70,12 @@ RUN sed -i 's/archive.ubuntu.com/mirrors.tuna.tsinghua.edu.cn/g' /etc/apt/source
 COPY docker/cn/install.sh /tmp/install.sh
 RUN chmod +x /tmp/install.sh
 
-RUN --mount=type=cache,target=/root/.cache \
+RUN --mount=type=cache,target=${CACHE_DIR} \
     --mount=type=cache,target=/wheels,from=builder,source=/wheels \
     /tmp/install.sh
 
 # upgrade triton
-RUN --mount=type=cache,target=/root/.cache \
+RUN --mount=type=cache,target=${CACHE_DIR} \
     --mount=type=cache,target=/wheels,from=builder,source=/wheels \
     pip install --upgrade triton -i https://pypi.tuna.tsinghua.edu.cn/simple
 
