@@ -104,11 +104,11 @@ class SubCliServe:
         quant_policy = ArgumentHelper.quant_policy(pt_group)
         model_format = ArgumentHelper.model_format(pt_group)
         hf_overrides = ArgumentHelper.hf_overrides(pt_group)
+        enable_metrics = ArgumentHelper.enable_metrics(pt_group)
         ArgumentHelper.dp(pt_group)
         ArgumentHelper.ep(pt_group)
         ArgumentHelper.enable_microbatch(pt_group)
         ArgumentHelper.enable_eplb(pt_group)
-        ArgumentHelper.enable_metrics(pt_group)
         ArgumentHelper.role(pt_group)
         ArgumentHelper.migration_backend(pt_group)
         # multi-node serving args
@@ -129,6 +129,7 @@ class SubCliServe:
         tb_group._group_actions.append(quant_policy)
         tb_group._group_actions.append(model_format)
         tb_group._group_actions.append(hf_overrides)
+        tb_group._group_actions.append(enable_metrics)
         ArgumentHelper.rope_scaling_factor(tb_group)
         ArgumentHelper.num_tokens_per_iter(tb_group)
         ArgumentHelper.max_prefill_iters(tb_group)
@@ -137,22 +138,6 @@ class SubCliServe:
         # vlm args
         vision_group = parser.add_argument_group('Vision model arguments')
         ArgumentHelper.vision_max_batch_size(vision_group)
-
-    @staticmethod
-    def add_parser_api_client():
-        """Add parser for api_client command."""
-        parser = SubCliServe.subparsers.add_parser('api_client',
-                                                   formatter_class=DefaultsAndTypesHelpFormatter,
-                                                   description=SubCliServe.api_client.__doc__,
-                                                   help=SubCliServe.api_client.__doc__)
-        parser.set_defaults(run=SubCliServe.api_client)
-        parser.add_argument('api_server_url', type=str, help='The URL of api server')
-        parser.add_argument('--api-key',
-                            type=str,
-                            default=None,
-                            help='api key. Default to None, which means no '
-                            'api key will be used')
-        ArgumentHelper.session_id(parser)
 
     @staticmethod
     def add_parser_proxy():
@@ -249,6 +234,7 @@ class SubCliServe:
                                                    num_tokens_per_iter=args.num_tokens_per_iter,
                                                    max_prefill_iters=args.max_prefill_iters,
                                                    communicator=args.communicator,
+                                                   enable_metrics=args.enable_metrics,
                                                    hf_overrides=args.hf_overrides)
         chat_template_config = get_chat_template(args.chat_template)
 
@@ -308,13 +294,6 @@ class SubCliServe:
                           tool_call_parser=args.tool_call_parser)
 
     @staticmethod
-    def api_client(args):
-        """Interact with restful api server in terminal."""
-        from lmdeploy.serve.openai.api_client import main as run_api_client
-        kwargs = convert_args(args)
-        run_api_client(**kwargs)
-
-    @staticmethod
     def proxy(args):
         """Proxy server that manages distributed api_server nodes."""
         from lmdeploy.serve.proxy.proxy import proxy
@@ -324,5 +303,4 @@ class SubCliServe:
     @staticmethod
     def add_parsers():
         SubCliServe.add_parser_api_server()
-        SubCliServe.add_parser_api_client()
         SubCliServe.add_parser_proxy()
