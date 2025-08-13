@@ -77,7 +77,7 @@ RUN --mount=type=cache,target=${CACHE_DIR} \
 # upgrade triton
 RUN --mount=type=cache,target=${CACHE_DIR} \
     --mount=type=cache,target=/wheels,from=builder,source=/wheels \
-    pip install --upgrade triton -i https://pypi.tuna.tsinghua.edu.cn/simple
+    /opt/py3/bin/pip install --upgrade triton -i https://pypi.tuna.tsinghua.edu.cn/simple
 
 # explicitly set ptxas path for triton
 ENV PATH=/opt/py3/bin:$PATH
